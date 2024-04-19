@@ -1,0 +1,16 @@
+
+Gradient Without Propagation:
+- We could do a systematic review of the FGD algorithm on different architectures and types of neural networks
+- Once we know which types benefit from FGD and which don't, we could also try a hybrid approach using both FGD on layers which are known to benefit from this algorithm
+and standard Backprop on other layer where we might have bottlenecks
+- One other thing we could do is exploring different sampling strategies other than from a normal distribution
+(which is what is proposed by the paper)
+
+
+WNGrad: Learn the Learning Rate
+- We could study the effectiveness of the algorithm accross different kinds of ML models (Decision Trees, SVM,
+Transformers)
+- What about highly non-convex and complex losses (e.g Reinforcement Learning), can WNGrad provide any benefits?
+
+
+Couldn't find the other paper ?
