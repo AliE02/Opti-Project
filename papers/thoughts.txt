@@ -13,4 +13,8 @@ Transformers)
 - What about highly non-convex and complex losses (e.g Reinforcement Learning), can WNGrad provide any benefits?
 
 
-Couldn't find the other paper ?
+Global Optimization with Parametric Function Approximation:
+- One idea that comes to mind is testing cross-domain application of this method (test the
+method on different models and datasets to see if it generalizes well)
+- Try addapting the GO-UCB Algorithm for Reinforcement Learning and see if we can get faster convergence and or
+improved performance.
