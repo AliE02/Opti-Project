@@ -1,0 +1,12 @@
+Papers to get ideas on Forward Gradient:
+
+https://paperswithcode.com/method/forward-gradient
+
+Base paper code:
+https://github.com/orobix/fwdgrad
+
+Can Forward Gradient match Backprop (more complicated paper) code :
+https://github.com/streethagore/ForwardLocalGradient
+
+Scaling forward gradient with local losses (Google Paper) code:
+https://github.com/google-research/google-research
