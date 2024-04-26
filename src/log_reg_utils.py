@@ -48,22 +48,12 @@ def functional_xent(
     y = fc.functional_call(model, ({k: v for k, v in zip(names, params)}, buffers), (x,))
     return _xent(y, t)
 
-def xent(model: torch.nn.Module, x: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
-    """Cross-entropy loss. Given a pytorch model, it computes the cross-entropy loss.
-
-    Args:
-        model (torch.nn.Module): PyTorch model.
-        x (torch.Tensor): Input tensor for the PyTorch model.
-        t (torch.Tensor): Targets.
-
-    Returns:
-        torch.Tensor: Cross-entropy loss.
-    """
-    y = model(x)
-    return _xent(y, t)
 
 
 class LogisticRegression(tn.Module):
+    """
+    Logistic Regression model
+    """
     def __init__(self,input_size,num_classes):
         super(LogisticRegression,self).__init__()
         self.linear = tn.Linear(input_size,num_classes)
@@ -83,19 +73,16 @@ def run_log_reg(train_dataLoader, test_dataLoader, input_size=28*28, num_classes
     params = named_params.values()
 
     base_model = copy.deepcopy(model)
-    #crit_loss = tn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(),lr=learning_rate)
 
-    for epoch in range(num_epochs):
+    for _ in range(num_epochs):
         for i,(images,labels) in enumerate(train_dataLoader):
             images = torch.autograd.Variable(images.view(-1,input_size))
             labels = torch.autograd.Variable(labels)
             
-            # Nullify gradients w.r.t. parameters
             optimizer.zero_grad()
             #forward propagation
             output = model(images)
-            # compute loss based on obtained value and actual label
 
             if forward :
                 v_params = tuple([torch.randn_like(p) for p in params])
@@ -115,8 +102,7 @@ def run_log_reg(train_dataLoader, test_dataLoader, input_size=28*28, num_classes
                 for v, p in zip(v_params, params):
                     p.grad = v * jvp
             else :
-                loss = xent(model,images,labels)
-                # backward propagation
+                loss = _xent(output,labels)
                 loss.backward()
                 
             # update the parameters
