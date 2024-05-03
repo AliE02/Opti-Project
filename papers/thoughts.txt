@@ -18,3 +18,20 @@ Global Optimization with Parametric Function Approximation:
 method on different models and datasets to see if it generalizes well)
 - Try addapting the GO-UCB Algorithm for Reinforcement Learning and see if we can get faster convergence and or
 improved performance.
+
+Interesting Datasets:
+- Computer Vision:
+    - CIFAR 10
+    - ImageNet
+    - Skin Cancer MNIST
+
+- Natural Language Processing:
+    - IMDB Reviews
+    - CoNLL-2003
+    - GLUE Benchmark
+
+- Audio and Speech:
+    - LibriSpeech
+    - UrbanSound8K
+
+- Time Series Forecasting
