@@ -11,7 +11,8 @@ https://paperswithcode.com/method/forward-gradient
 code :
 https://github.com/streethagore/ForwardLocalGradient
 
-**Scaling forward gradient with local losses (Google Paper)** :  They reduce the variance of the forward gradient estimator by applying perturbations to activations rather than weights. They also improve the scalability of forward gradient by introducing a large number of local greedy loss functions, each of which involves only a small number of learnable parameters. This approach matches backprop on MNIST and CIFAR-10 and significantly outperforms previously proposed forward gd algorithms on ImageNet. 
+**Scaling forward gradient with local losses (Google Paper)** :  They reduce the variance of the forward gradient estimator by applying perturbations to activations rather than weights. They also improve the scalability of forward gradient by introducing a large number of local greedy loss functions, each of which involves only a small number of learnable parameters. This approach matches backprop on MNIST and CIFAR-10 and significantly outperforms previously proposed forward gd algorithms on ImageNet.   
+ 
 code : https://github.com/google-research/google-research/tree/master/local_forward_gradient
 
 ## First meeting, TA's takes on the project: 
