@@ -6,13 +6,13 @@ https://paperswithcode.com/method/forward-gradient
 
 **Base paper code :** https://github.com/orobix/fwdgrad
 
-**Can Forward Gradient match Backprop** : They use local gradients from auxiliary losses as Gradient Guess directions for the computation of forward gradient with respect to a Global Target. The study confirms that  Gradient Guesses obtained from Local Guesses exceeded the performance of Random Guesses. In the case of Gradient Guesses using supervised Local Losses, a consistent positive alignment between the Gradient Targets and Guesses improves the Forward Gradient estimation.  They conclude that stimating consistently the Global Target should be the main focus of Forward Gradient algorithms. Evaluation done on ResNet-18 architecture divided into 8 and 16 blocks on the standard object recognition tasks CIFAR10, ImageNet32, CIFAR100, MINST.
+**Can Forward Gradient match Backprop** : They use local gradients from auxiliary losses as Gradient Guess directions for the computation of forward gradient with respect to a Global Target. The study confirms that  Gradient Guesses obtained from Local Guesses exceeded the performance of Random Guesses. In the case of Gradient Guesses using supervised Local Losses, a consistent positive alignment between the Gradient Targets and Guesses improves the Forward Gradient estimation.  They conclude that stimating consistently the Global Target should be the main focus of Forward Gradient algorithms. Evaluation done on ResNet-18 architecture divided into 8 and 16 blocks on the standard object recognition tasks CIFAR10, ImageNet32, CIFAR100, MNIST.
 
 code :
 https://github.com/streethagore/ForwardLocalGradient
 
 **Scaling forward gradient with local losses (Google Paper)** :  They reduce the variance of the forward gradient estimator by applying perturbations to activations rather than weights. They also improve the scalability of forward gradient by introducing a large number of local greedy loss functions, each of which involves only a small number of learnable parameters. This approach matches backprop on MNIST and CIFAR-10 and significantly outperforms previously proposed forward gd algorithms on ImageNet.   
- 
+
 code : https://github.com/google-research/google-research/tree/master/local_forward_gradient
 
 ## First meeting, TA's takes on the project: 
