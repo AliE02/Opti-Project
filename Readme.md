@@ -20,3 +20,21 @@ https://github.com/google-research/google-research
 - Find measure of time (flops) depending on hypothesis
 - We can choose to train on any data. We have to clearly state our thinking and be transparent with results
 - We can state new formulas (for example using momentum) without proving them. Writing the formula is enough
+
+## Second meeting:
+We came up with 3 hypothesis :
+- Can Forward gd match Backpropagation accross different domains?
+- Assessment of the performance of Forward gd across usual ML architectures
+- Forward vs Backward : What is the difference in performance accross different domains, datasets and architectures?
+
+We need to run fwgd on different datasets and tasks :
+- Andrea : Nlp
+- Ali : Audio and speech
+- Yassine : Computer vision
+
+We should use a profiler to count flops (or any other technique we can find to account for time in the best possible way).
+
+We should try to use the base paper code architecture (hydra, SGD with exponential lr decay).
+
+
+
