@@ -34,4 +34,6 @@ Interesting Datasets:
     - LibriSpeech
     - UrbanSound8K
 
-- Time Series Forecasting
+- Time Series Forecasting:
+    - UCI Machine Learning Repository
+    - Kaggle's web traffic time series Forecasting
