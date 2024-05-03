@@ -8,12 +8,11 @@ import hydra
 import torch
 import torch.func as fc
 import torch.nn.functional as F
-import torchvision
 from omegaconf import DictConfig, OmegaConf
 from torch.utils import tensorboard
 from tqdm import tqdm
 
-from src.loss import functional_xent
+from src.utils import load_datasets
 
 OmegaConf.register_new_resolver("get_method", hydra.utils.get_method)
 
@@ -21,36 +20,33 @@ OmegaConf.register_new_resolver("get_method", hydra.utils.get_method)
 @hydra.main(config_path="./configs/", config_name="config.yaml")
 def train_model(cfg: DictConfig):
     use_cuda = torch.cuda.is_available()
-    device = torch.device(f"cuda:{cfg.device_id}" if use_cuda else "mps")
+    device = torch.device(f"cuda:{cfg.device_id}" if use_cuda else "cpu")
     total_epochs = cfg.epochs
     grad_clipping = cfg.grad_clipping
 
     # Summary
     writer = tensorboard.writer.SummaryWriter(os.path.join(os.getcwd(), "logs/fwdgrad"))
 
-    # Dataset creation
-    input_size = 1  # Channel size
-    transform = [torchvision.transforms.ToTensor(), torchvision.transforms.Normalize((0.1307,), (0.3081,))]
+    train_dataset, test_dataset = load_datasets(cfg.dataname)
+    train_loader = hydra.utils.instantiate(cfg.dataset, dataset=train_dataset)
+    test_loader = hydra.utils.instantiate(cfg.dataset, dataset=test_dataset)
 
-    mnist_train = torchvision.datasets.MNIST(
-        "/tmp/data",
-        train=True,
-        download=True,
-        transform=torchvision.transforms.Compose(transform),
-    )
-    mnist_test = torchvision.datasets.MNIST(
-        "/tmp/data",
-        train=False,
-        download=True,
-        transform=torchvision.transforms.Compose(transform),
-    )
-
-    train_loader = hydra.utils.instantiate(cfg.dataset, dataset=mnist_train)
-    test_loader = hydra.utils.instantiate(cfg.dataset, dataset=mnist_test)
-
-    output_size = len(mnist_train.classes)
     with torch.no_grad():
-        model: torch.nn.Module = hydra.utils.instantiate(cfg.model, input_size=input_size, output_size=output_size)
+        if cfg.model.name == "convnet":
+            model: torch.nn.Module = hydra.utils.instantiate(cfg.model, input_size=1, output_size=len(test_dataset.classes))
+
+        ##################################################################
+        #                  TODO: Implement other models                  #
+        ##################################################################
+
+
+
+
+
+
+        ##################################################################
+        else:
+            model: torch.nn.Module = hydra.utils.instantiate(cfg.model)
         model.to(device)
         model.float()
         model.train()
@@ -59,6 +55,8 @@ def train_model(cfg: DictConfig):
         optimizer.zero_grad(set_to_none=True)
 
         scheduler: torch.optim.lr_scheduler._LRScheduler = hydra.utils.instantiate(cfg.scheduler, optimizer=optimizer)
+
+        loss_function = hydra.utils.get_method(cfg.loss)
 
         named_buffers = dict(model.named_buffers())
         named_params = dict(model.named_parameters())
@@ -80,7 +78,7 @@ def train_model(cfg: DictConfig):
                 # Sample perturbation (tangent) vectors for every parameter of the model
                 v_params = tuple([torch.randn_like(p) for p in params])
                 f = partial(
-                    functional_xent,
+                    loss_function,
                     model=base_model,
                     names=names,
                     buffers=named_buffers,
@@ -125,10 +123,13 @@ def train_model(cfg: DictConfig):
         for batch in tqdm(test_loader):
             images, labels = batch
             out = fc.functional_call(base_model, (named_params, named_buffers), (images.to(device),))
-            pred = F.softmax(out, dim=-1).argmax(dim=-1)
+            pred = hydra.utils.call(cfg.prediction, out, dim=-1).argmax(dim=-1)
             acc += (pred == labels.to(device)).sum()
-        writer.add_scalar("Test/accuracy", acc / len(mnist_test), steps)
-        print(f"Test accuracy: {(acc / len(mnist_test)).item():.4f}")
+        writer.add_scalar("Test/accuracy", acc / len(test_dataset), steps)
+        print(f"Test accuracy: {(acc / len(test_dataset)).item():.4f}")
+
+
+
 
 
 if __name__ == "__main__":

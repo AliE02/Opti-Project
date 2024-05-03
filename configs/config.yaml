@@ -8,3 +8,7 @@ defaults:
 epochs: 200
 device_id: 0
 grad_clipping: 0.0
+model_name: "convnet"
+dataset_name: "mnist"
+loss: src.loss.functional_xent
+activation: torch.nn.functional.softmax
