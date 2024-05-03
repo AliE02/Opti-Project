@@ -6,6 +6,9 @@ https://paperswithcode.com/method/forward-gradient
 
 **Base paper code :** https://github.com/orobix/fwdgrad
 
+**Known problem of existing approaches :** They suffer from the curse of dimensionality, and the variance of the estimated gradients is too high to effectively train
+large networks. Google Paper tries to solve this.
+
 **Can Forward Gradient match Backprop** : They use local gradients from auxiliary losses as Gradient Guess directions for the computation of forward gradient with respect to a Global Target. The study confirms that  Gradient Guesses obtained from Local Guesses exceeded the performance of Random Guesses. In the case of Gradient Guesses using supervised Local Losses, a consistent positive alignment between the Gradient Targets and Guesses improves the Forward Gradient estimation.  They conclude that stimating consistently the Global Target should be the main focus of Forward Gradient algorithms. Evaluation done on ResNet-18 architecture divided into 8 and 16 blocks on the standard object recognition tasks CIFAR10, ImageNet32, CIFAR100, MNIST.
 
 code :
