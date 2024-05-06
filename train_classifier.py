@@ -11,6 +11,8 @@ import torch.nn.functional as F
 from omegaconf import DictConfig, OmegaConf
 from torch.utils import tensorboard
 from tqdm import tqdm
+from datetime import datetime
+from importlib import import_module
 
 from src.utils import load_datasets
 
@@ -20,23 +22,24 @@ OmegaConf.register_new_resolver("get_method", hydra.utils.get_method)
 @hydra.main(config_path="./configs/", config_name="config.yaml")
 def train_model(cfg: DictConfig):
     use_cuda = torch.cuda.is_available()
-    device = torch.device(f"cuda:{cfg.device_id}" if use_cuda else "cpu")
+    device = torch.device(f"cuda:{cfg.device_id}" if use_cuda else "mps")
     total_epochs = cfg.epochs
     grad_clipping = cfg.grad_clipping
 
     # Summary
     writer = tensorboard.writer.SummaryWriter(os.path.join(os.getcwd(), "logs/fwdgrad"))
 
-    train_dataset, test_dataset = load_datasets(cfg.dataname)
+    train_dataset, test_dataset = load_datasets(cfg.dataset_name)
+
     train_loader = hydra.utils.instantiate(cfg.dataset, dataset=train_dataset)
     test_loader = hydra.utils.instantiate(cfg.dataset, dataset=test_dataset)
 
     with torch.no_grad():
-        if cfg.model.name == "convnet":
+        if cfg.model_name == "convnet":
             model: torch.nn.Module = hydra.utils.instantiate(cfg.model, input_size=1, output_size=len(test_dataset.classes))
 
         ##################################################################
-        #                  TODO: Implement other models                  #
+        #              TODO: Implement other models loading              #
         ##################################################################
 
 
@@ -69,6 +72,8 @@ def train_model(cfg: DictConfig):
         # Train
         steps = 0
         t_total = 0.0
+        base_model.train()
+
         for epoch in tqdm(range(total_epochs)):
             t0 = time.perf_counter()
             for batch in train_loader:
@@ -111,6 +116,14 @@ def train_model(cfg: DictConfig):
                 writer.add_scalar("Loss/train_loss", loss, steps)
                 writer.add_scalar("Misc/lr", scheduler.get_last_lr()[0], steps)
 
+            # if it doesn't exist, create directory checkpoints
+            if not os.path.exists("checkpoints"):
+                os.makedirs("checkpoints")
+
+            # Save model checkpoint
+            now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            torch.save(model.state_dict(), f"checkpoints/{cfg.model_name}_epoch_{epoch}_at_{now}.pth")
+
             t1 = time.perf_counter()
             t_total += t1 - t0
             writer.add_scalar("Time/batch_time", t1 - t0, steps)
@@ -123,7 +136,13 @@ def train_model(cfg: DictConfig):
         for batch in tqdm(test_loader):
             images, labels = batch
             out = fc.functional_call(base_model, (named_params, named_buffers), (images.to(device),))
-            pred = hydra.utils.call(cfg.prediction, out, dim=-1).argmax(dim=-1)
+
+            # Importing the activation function
+            module_path, function_name = cfg.activation.rsplit('.', 1)
+            module = import_module(module_path)
+            activation = getattr(module, function_name)
+
+            pred = activation(out, dim=-1).argmax(dim=-1)
             acc += (pred == labels.to(device)).sum()
         writer.add_scalar("Test/accuracy", acc / len(test_dataset), steps)
         print(f"Test accuracy: {(acc / len(test_dataset)).item():.4f}")
@@ -134,3 +153,4 @@ def train_model(cfg: DictConfig):
 
 if __name__ == "__main__":
     train_model()
+    print("Training completed successfully!")

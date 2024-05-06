@@ -1,6 +1,15 @@
 # Project Name
 
-A brief description of your project.
+Welcome to our Optimization for Machine Learning project.
+In this project we are going to answer the following question:
+- Forward vs Backward: What are the differences in performance accross different domains, datasets and architectures?
+
+Our goal is to provide a comprehensive analysis of the performance of forward and backward optimization methods in the context of machine learning accross different domains such as **Computer Vision**, **Natural Language Processing** and **Speech Recognition**.
+
+We are going to be testing the forward and backward optimization methods on the following following tasks:
+- **Image Classification**: We are going to be using the CIFAR10 dataset.
+- **Sentiment Analysis**: We are going to be using the IMDB dataset.
+- **Speech Recognition**: We are going to be using the TIMIT dataset.
 
 ## Installation
 
@@ -13,12 +22,12 @@ pip install -r requirements.txt
 
 ## Usage
 
-This repository contains a mnist_fwdgrad.py script that you can use for training your own model.
+This repository contains a train_classifier.py script that you can use for training your own model.
 You will have to follow these steps:
 - Define how to load your data in the `load_data` function located in the `src/utils.py` file.
 This function should return a training and validation dataset all of the type `torch.utils.data.Dataset`.
-- Define your model in the `src/models.py` file.
-- Define how to load your model in the `load_model` function located in the `src/mnist_fwdgrad.py` file in the specified section using the `model_name` field in the configuration file.
+- Define your model in the `src/model.py` file.
+- Define how to load your model in the `load_model` function located in the `src/train_classifier.py` file in the specified section using the `model_name` field in the configuration file.
 - Define your loss function in the `src/losses.py` file (if it is not already implemented).
 
 
@@ -52,20 +61,19 @@ Typically:
 - `device_id` is the id of the GPU you want to use for training.
 - `grad_clipping` is the value of the gradient clipping you want to use.
 - `model_name` is the name of the model you want to use (this should be the same as the name used to load the model in the `train_model` function).
+- `dataset_name` is the name of the dataset you want to use (this should be the same as the name used to load the dataset in the `load_data` function).
+- `loss` is the path to the loss function you want to use.
+- `activation` is the path to the activation function you want to use.
 
+## Using the train_classifier.py script
 
-## Testing
+You can use the `train_classifier.py` script to train your model.
+You can do this by running the following command:
 
-Instructions on how to run tests, if applicable.
-
-## Contributing
-
-Guidelines for contributing to the project.
-
-## FAQs
-
-Frequently asked questions and their answers.
+```bash
+python train_classifier.py --config_path configs/config.yaml
+```
 
 ## License
 
-Specify the license under which your code is released.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
