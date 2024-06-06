@@ -1,0 +1,8 @@
+**/__pycache__
+**/.DS_Store
+**/data/*
+!**/data/.gitkeep 
+**/visionModels_runs/*
+!**/visionModels_runs/.gitkeep 
+
+
