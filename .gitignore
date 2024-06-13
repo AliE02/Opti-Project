@@ -4,5 +4,7 @@
 !**/data/.gitkeep 
 **/visionModels_runs/*
 !**/visionModels_runs/.gitkeep 
+**/logistic_reg_runs/*
+!**/logistic_reg_runs/.gitkeep 
 
 
