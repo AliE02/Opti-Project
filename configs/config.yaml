@@ -1,14 +1,14 @@
 defaults:
   - _self_
-  - dataset: default
-  - model: default
-  - optimizer: default
+  - dataset: sound
+  - model: sound
+  - optimizer: sound
   - scheduler: default
 
 epochs: 2
 device_id: 0
 grad_clipping: 0.0
-model_name: "convnet"
-dataset_name: "mnist"
+model_name: "convrnn"
+dataset_name: "esc10"
 loss: src.loss.functional_xent
 activation: torch.nn.functional.softmax
