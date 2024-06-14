@@ -10,13 +10,14 @@ from torch.utils import tensorboard
 
 from src.loss import xent
 from src.utils import load_datasets
-
+from datetime import datetime
 from sklearn.metrics import precision_score, recall_score, f1_score
+from tqdm import tqdm
 
 OmegaConf.register_new_resolver("get_method", hydra.utils.get_method)
 
 
-@hydra.main(config_path="./configs/", config_name="config.yaml")
+@hydra.main(config_path="./configs/", config_name="complex_esc.yaml")
 def train_model(cfg: DictConfig):
     use_cuda = torch.cuda.is_available()
     device = torch.device(f"cuda:{cfg.device_id}" if use_cuda else "cpu")
@@ -30,7 +31,7 @@ def train_model(cfg: DictConfig):
     writer = tensorboard.writer.SummaryWriter(os.path.join(os.getcwd(), "logs/backprop"))
 
     # Dataset creation
-    train_dataset, test_dataset, val_dataset = load_datasets(cfg.dataset_name, cfg.seed)
+    train_dataset, test_dataset, val_dataset = load_datasets(cfg.dataset_name)
     if val_dataset:
         val_loader = hydra.utils.instantiate(cfg.dataset, dataset=val_dataset)
 
@@ -63,6 +64,10 @@ def train_model(cfg: DictConfig):
 
     scheduler: torch.optim.lr_scheduler._LRScheduler = hydra.utils.instantiate(cfg.scheduler, optimizer=optimizer)
 
+    # if it doesn't exist, create directory checkpoints
+    if not os.path.exists("checkpoints"):
+        os.makedirs("checkpoints")
+
     steps = 0
     t_total = 0.0
     for epoch in range(total_epochs):
@@ -80,44 +85,71 @@ def train_model(cfg: DictConfig):
             # get the norm of the gradients
             grad_norm = torch.norm(torch.stack([torch.norm(p.grad.detach()) for p in model.parameters()]))
 
+
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad(set_to_none=True)
-            writer.add_scalar("Loss/train_loss_step", loss, steps)
+            writer.add_scalar("Loss/train_loss", loss, steps)
             writer.add_scalar("Misc/lr", scheduler.get_last_lr()[0], steps)
 
-        # write the last training loss of the epoch
-        writer.add_scalar("Loss/train_loss_epoch", loss, epoch+1)
+        # add validation accuracy
+        if val_dataset:
+            acc = 0
+            losses = []
+            for val_batch in val_loader:
+                val_images, val_labels = val_batch
+                val_images = val_images.contiguous().to(device)
+                val_labels = val_labels.contiguous().to(device)
+
+                val_out = model(val_images)
+                val_loss = xent(model, val_images, val_labels)
+                losses.append(val_loss)
+
+                val_pred = F.softmax(val_out, dim=-1).argmax(dim=-1)
+                acc += (val_pred == val_labels.to(device)).sum()
+
+            writer.add_scalar("Val/loss_step", sum(losses) / len(losses), steps)
+            writer.add_scalar("Val/loss_epoch", sum(losses) / len(losses), epoch+1)
+            writer.add_scalar("Val/accuracy_step", acc / len(val_dataset), steps)
+            writer.add_scalar("Val/accuracy_epoch", acc / len(val_dataset), epoch+1)
+            print(f"Validation accuracy: {(acc / len(val_dataset)).item():.4f}")
+
+        # Save model checkpoint
+        if epoch % 50 == 0:
+            now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            torch.save(model.state_dict(), f"checkpoints/{cfg.model_name}_epoch_{epoch}_at_{now}.pth")
 
         t1 = time.perf_counter()
         t_total += t1 - t0
         writer.add_scalar("Time/batch_time", t1 - t0, steps)
         writer.add_scalar("Time/sps", steps / t_total, steps)
-        print(f"Epoch [{epoch+1}/{total_epochs}], Loss: {loss.item():.4f}, Time (s): {t1 - t0:.4f}")
+        print(f"Epoch [{epoch+1}/{total_epochs}], Loss: {loss.item():.4f}, Time (s): {t1 - t0:.4f}, grad_norm: {grad_norm:.8f}")
     print("Mean time:", t_total / total_epochs)
 
     # Test
     acc = 0
     true = []
-    pred = []
-    for batch in test_loader:
+    preds = []
+    for batch in tqdm(test_loader):
         images, labels = batch
         out = model(images.to(device))
         pred = F.softmax(out, dim=-1).argmax(dim=-1)
 
-        true += labels.tolist()
-        pred += pred.tolist()
+        # add predictions and labels to the lists
+        true.extend(labels.tolist())
+        preds.extend(pred.tolist())
 
         acc += (pred == labels.to(device)).sum()
 
-    precision = precision_score(true, pred, average="macro")
-    recall = recall_score(true, pred, average="macro")
-    f1 = f1_score(true, pred, average="macro")
+    # compute precision, recall and f1 score macro-averages
+    precision = precision_score(true, preds, average="macro")
+    recall = recall_score(true, preds, average="macro")
+    f1 = f1_score(true, preds, average="macro")
 
+    writer.add_scalar("Test/accuracy", acc / len(test_dataset), steps)
     writer.add_scalar("Test/precision", precision, steps)
     writer.add_scalar("Test/recall", recall, steps)
     writer.add_scalar("Test/f1", f1, steps)
-    writer.add_scalar("Test/accuracy", acc / len(test_dataset), steps)
     print(f"Test accuracy: {(acc / len(test_dataset)).item():.4f}")
 
 

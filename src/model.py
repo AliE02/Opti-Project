@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch import nn
 
 class ConvNet(nn.Module):
-    def __init__(self, input_size: int = 1, output_size: int = 10):
+    def __init__(self, input_size: int = 2, output_size: int = 10):
         """Standard Convolutional Network layers for the MNIST dataset.
 
         Args:

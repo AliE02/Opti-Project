@@ -37,8 +37,7 @@ def load_datasets(dataset: str, seed: int = 42):
             transform=torchvision.transforms.Compose(transform),
         )
 
-        # take 10% of the training dataset as validation
-        train_dataset, val_dataset = train_test_split(train_dataset, test_size=0.1, random_state=42)
+        val_dataset = test_dataset
 
         return train_dataset, test_dataset, val_dataset
 
@@ -50,7 +49,7 @@ def load_datasets(dataset: str, seed: int = 42):
 
         # shuffle the dataset list using the seed
         torch.manual_seed(seed)
-        dataset = dataset[torch.randperm(len(dataset))]
+        # dataset = dataset[torch.randperm(len(dataset))]
         
 
         # Split dataset into training and testing while keeping the torch tensor format
@@ -58,8 +57,6 @@ def load_datasets(dataset: str, seed: int = 42):
 
         # take 10% of the training dataset as validation
         train_dataset, val_dataset = train_test_split(train_dataset, test_size=0.1, random_state=42)
-
-        print("type of train_dataset", type(train_dataset))
 
         return train_dataset, test_dataset, val_dataset
     ###################################################################

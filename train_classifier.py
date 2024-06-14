@@ -15,6 +15,7 @@ from datetime import datetime
 from importlib import import_module
 
 from src.utils import load_datasets
+from src.loss import xent
 from sklearn.metrics import precision_score, recall_score, f1_score
 
 import multiprocessing
@@ -22,7 +23,7 @@ import multiprocessing
 OmegaConf.register_new_resolver("get_method", hydra.utils.get_method)
 
 
-@hydra.main(config_path="./configs/", config_name="config.yaml")
+@hydra.main(config_path="./configs/", config_name="basic_mnist_adagrad.yaml")
 def train_model(cfg: DictConfig):
     use_cuda = torch.cuda.is_available()
     device = torch.device(f"cuda:{cfg.device_id}" if use_cuda else "cpu")
@@ -45,7 +46,7 @@ def train_model(cfg: DictConfig):
 
     with torch.no_grad():
         if cfg.dataset_name == "esc10":
-            model: torch.nn.Module = hydra.utils.instantiate(cfg.model, 2, len(test_dataset.classes))
+            model: torch.nn.Module = hydra.utils.instantiate(cfg.model, 2, 10)
         elif cfg.dataset_name == "mnist":
             model: torch.nn.Module = hydra.utils.instantiate(cfg.model, 1, len(test_dataset.classes))
 
@@ -150,7 +151,7 @@ def train_model(cfg: DictConfig):
                     val_labels = val_labels.contiguous().to(device)
 
                     val_out = fc.functional_call(base_model, (named_params, named_buffers), (val_images,))
-                    val_loss = loss_function(model, names, named_buffers, val_images, val_labels)
+                    val_loss = xent(model, val_images, val_labels)
                     losses.append(val_loss)
 
                     # Importing the activation function
@@ -169,8 +170,9 @@ def train_model(cfg: DictConfig):
 
 
             # Save model checkpoint
-            now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            torch.save(model.state_dict(), f"checkpoints/{cfg.model_name}_epoch_{epoch}_at_{now}.pth")
+            if epoch % 50 == 0:
+                now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                torch.save(model.state_dict(), f"checkpoints/{cfg.model_name}_epoch_{epoch}_at_{now}.pth")
 
             t1 = time.perf_counter()
             t_total += t1 - t0
@@ -182,7 +184,7 @@ def train_model(cfg: DictConfig):
         # Test
         acc = 0
         true = []
-        pred = []
+        preds = []
         for batch in tqdm(test_loader):
             images, labels = batch
             out = fc.functional_call(base_model, (named_params, named_buffers), (images.to(device),))
@@ -195,15 +197,15 @@ def train_model(cfg: DictConfig):
             pred = activation(out, dim=-1).argmax(dim=-1)
 
             # add predictions and labels to the lists
-            true += labels.tolist()
-            pred += pred.tolist()
+            true.extend(labels.tolist())
+            preds.extend(pred.tolist())
 
             acc += (pred == labels.to(device)).sum()
 
         # compute precision, recall and f1 score macro-averages
-        precision = precision_score(true, pred, average="macro")
-        recall = recall_score(true, pred, average="macro")
-        f1 = f1_score(true, pred, average="macro")
+        precision = precision_score(true, preds, average="macro")
+        recall = recall_score(true, preds, average="macro")
+        f1 = f1_score(true, preds, average="macro")
 
         writer.add_scalar("Test/accuracy", acc / len(test_dataset), steps)
         writer.add_scalar("Test/precision", precision, steps)
@@ -217,17 +219,18 @@ def train_model(cfg: DictConfig):
 
 if __name__ == "__main__":
     processes = []
-    config_names = ["complex_esc", "complex_mnist", "basic_esc"]
-    for name in config_names:
-        @hydra.main(config_path="./configs/", config_name=f"{name}.yaml")
-        def train_model_bis(cfg: DictConfig):
-            train_model(cfg)
+    train_model()
+    # config_names = ["complex_esc", "complex_mnist", "basic_esc"]
+    # for name in config_names:
+    #     @hydra.main(config_path="./configs/", config_name=f"{name}.yaml")
+    #     def train_model_bis(cfg: DictConfig):
+    #         train_model(cfg)
 
-        p = multiprocessing.Process(target=train_model_bis)
-        p.start()
-        processes.append(p)
+    #     p = multiprocessing.Process(target=train_model_bis)
+    #     p.start()
+    #     processes.append(p)
     
-    for p in processes:
-        p.join()
+    # for p in processes:
+    #     p.join()
     
     print("Training completed successfully!")
