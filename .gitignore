@@ -10,6 +10,7 @@
 !**/convNet_runs/.gitkeep 
 **/multiLayerNet_runs/*
 !**multiLayerNet_runs/.gitkeep 
+plots/
 
 
 
