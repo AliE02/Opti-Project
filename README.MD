@@ -74,6 +74,17 @@ You can do this by running the following command:
 python train_classifier.py --config_path configs/config.yaml
 ```
 
+## Reproducing plots
+
+outputs folder contains audio experiments
+src folder contains :
+- roberta folder for text experiments
+- vision experiments and baselines for image classification
+
+You can train the models from scratch or use this link to download runs to reproduce plots:
+https://drive.google.com/drive/folders/1t1iYu2a_VS-_gdZCKAH6sLUYoAZVmC7H?usp=sharing
+https://drive.google.com/drive/folders/11zao50qKBFVhMADqdzNI95Hua6337P_n?usp=sharing
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
