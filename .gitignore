@@ -6,5 +6,10 @@
 !**/visionModels_runs/.gitkeep 
 **/logistic_reg_runs/*
 !**/logistic_reg_runs/.gitkeep 
+**/convNet_runs/*
+!**/convNet_runs/.gitkeep 
+**/multiLayerNet_runs/*
+!**multiLayerNet_runs/.gitkeep 
+
 
 

@@ -158,7 +158,7 @@ def functional_xent(
 
 
 def train_one_epoch_backward(
-    device, epoch_index, model, train_loader, input_size, optimizer, gradient_clip_val
+    device, epoch_index, model, train_loader, input_size, optimizer, gradient_clip_val, flatten
 ):
     train_epoch = {"Loss": [], "Acc": [], "F1": [], "Time": []}
     start_time = time.time()
@@ -170,7 +170,7 @@ def train_one_epoch_backward(
     )
 
     for i, (images, labels) in progress_bar:
-        images = images.view(-1, input_size).to(device)
+        images = images.view(-1, input_size).to(device) if flatten else images.to(device)
         labels = labels.to(device)
 
         optimizer.zero_grad()
@@ -222,6 +222,7 @@ def train_one_epoch_forward(
     train_loader,
     optimizer,
     gradient_clip_val,
+    flatten,
 ):
     train_epoch = {"Loss": [], "Acc": [], "F1": [], "Time": []}
     start_time = time.time()
@@ -233,7 +234,7 @@ def train_one_epoch_forward(
     )
 
     for i, (images, labels) in progress_bar:
-        images = images.view(-1, input_size).to(device)
+        images = images.view(-1, input_size).to(device) if flatten else images.to(device)
         labels = labels.to(device)
         optimizer.zero_grad(set_to_none=True)
         v_params = tuple([torch.randn_like(p) for p in params])
@@ -300,6 +301,7 @@ def train_validate(
     scheduler,
     output_path,
     gradient_clip_val,
+    flatten
 ):
 
     timestamp = datetime.now().strftime("%d_%m_%Y_start_%Hh%Mm")
@@ -307,7 +309,6 @@ def train_validate(
     writer = SummaryWriter(run_path / "tensorboard_logs")
 
     best_vloss = float("inf")
-    # early_stopper = EarlyStopper(patience=es_patience, min_delta=es_min_delta)
     train_run = {"Loss": [], "Acc": [], "F1": [], "Time": []}
     val_run = {"Loss": [], "Acc": [], "F1": [], "Time": []}
     train_run_its = {"Loss": [], "Acc": [], "F1": [], "Time": []}
@@ -335,6 +336,7 @@ def train_validate(
                 train_loader=train_loader,
                 optimizer=optimizer,
                 gradient_clip_val=gradient_clip_val,
+                flatten=flatten
             )
         else:
             train_epoch_run = train_one_epoch_backward(
@@ -345,6 +347,7 @@ def train_validate(
                 input_size=input_size,
                 optimizer=optimizer,
                 gradient_clip_val=gradient_clip_val,
+                flatten=flatten
             )
 
         val_epoch_run = {"Loss": [], "Acc": [], "F1": [], "Time": []}
@@ -357,7 +360,7 @@ def train_validate(
 
         with torch.no_grad():
             for i, (vimages, vlabels) in progress_bar:
-                vimages = vimages.view(-1, input_size).to(device)
+                vimages = vimages.view(-1, input_size).to(device) if flatten else vimages.to(device)
                 vlabels = vlabels.to(device)
                 if forward:
                     voutput = fc.functional_call(
@@ -461,6 +464,7 @@ def train_validate_forward(
     scheduler,
     output_path,
     gradient_clip_val=0,
+    flatten=True
 ):
     with torch.no_grad():
         model.train()
@@ -479,6 +483,7 @@ def train_validate_forward(
             scheduler,
             output_path,
             gradient_clip_val=gradient_clip_val,
+            flatten=flatten
         )
     return train_run, val_run, train_run_its, val_run_its, run_path
 
@@ -495,6 +500,7 @@ def train_validate_backward(
     scheduler,
     output_path,
     gradient_clip_val=0,
+    flatten=True
 ):
     model.train()
     model.float()
@@ -512,11 +518,12 @@ def train_validate_backward(
         scheduler,
         output_path,
         gradient_clip_val=gradient_clip_val,
+        flatten=flatten
     )
     return train_run, val_run, train_run_its, val_run_its, run_path
 
 
-def evaluate(device, model, input_size, test_loader, run_path=None):
+def evaluate(device, model, input_size, test_loader, run_path=None, flatten=True):
     model.eval()
 
     eval_run = {"Acc": [], "F1": []}
@@ -527,7 +534,7 @@ def evaluate(device, model, input_size, test_loader, run_path=None):
 
     with torch.no_grad():
         for i, (images, labels) in progress_bar:
-            images = images.view(-1, input_size).to(device)
+            images = images.view(-1, input_size).to(device) if flatten else images.to(device)
             labels = labels.to(device)
             output = model(images)
             preds = F.softmax(output, dim=-1).argmax(dim=-1)
