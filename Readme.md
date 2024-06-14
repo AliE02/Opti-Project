@@ -30,6 +30,8 @@ This function should return a training and validation dataset all of the type `t
 - Define how to load your model in the `load_model` function located in the `src/train_classifier.py` file in the specified section using the `model_name` field in the configuration file.
 - Define your loss function in the `src/losses.py` file (if it is not already implemented).
 
+You can also find all experiment notebooks in the `src/roberta` and `src/vision_experiments` directories.
+
 
 ## Configuration
 
