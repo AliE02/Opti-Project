@@ -1,0 +1,15 @@
+defaults:
+  - _self_
+  - dataset: default
+  - model: convrnn
+  - optimizer: adam
+  - scheduler: default
+
+epochs: 200
+device_id: 0
+grad_clipping: 1.0
+model_name: "convrnn"
+dataset_name: "esc10"
+loss: src.loss.functional_xent
+activation: torch.nn.functional.softmax
+seed: 42

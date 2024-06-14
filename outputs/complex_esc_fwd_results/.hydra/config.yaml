@@ -1,0 +1,29 @@
+epochs: 200
+device_id: 0
+grad_clipping: 1.0
+model_name: convrnn
+dataset_name: esc10
+loss: src.loss.functional_xent
+activation: torch.nn.functional.softmax
+seed: 42
+dataset:
+  _target_: torch.utils.data.DataLoader
+  batch_size: 64
+  shuffle: true
+  num_workers: 8
+  pin_memory: true
+  drop_last: false
+model:
+  _target_: src.ConvolutionalRNN.BasicCNNModel
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0002
+  eps: 0.0001
+  weight_decay: 0.0
+scheduler:
+  _target_: torch.optim.lr_scheduler.LambdaLR
+  lr_lambda:
+    _target_: functools.partial
+    _args_:
+    - ${get_method:src.utils.exponential_lr_decay}
+    k: 1.0e-08
