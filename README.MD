@@ -76,12 +76,12 @@ python train_classifier.py --config_path configs/config.yaml
 
 ## Reproducing plots
 
-outputs folder contains audio experiments
-src folder contains :
+outputs folder contains audio experiments  
+src folder contains :  
 - roberta folder for text experiments
 - vision experiments and baselines for image classification
 
-You can train the models from scratch or use this link to download runs to reproduce plots:
+You can train the models from scratch for (text data specifically) or use this link to download runs to reproduce vision experiments plots:
 https://drive.google.com/drive/folders/1t1iYu2a_VS-_gdZCKAH6sLUYoAZVmC7H?usp=sharing
 https://drive.google.com/drive/folders/11zao50qKBFVhMADqdzNI95Hua6337P_n?usp=sharing
 
