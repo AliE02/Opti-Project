@@ -1,4 +1,4 @@
-# Project Name
+# Forward vs Backward Gradient
 
 Welcome to our Optimization for Machine Learning project.
 In this project we are going to answer the following question:
